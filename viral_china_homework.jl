@@ -1,40 +1,33 @@
-# Presh Talwakar's problem
+# Presh Talwakar's Chinese sixth-grade geometry problem
 # https://www.youtube.com/watch?v=xnE_sO7PbBs
+# https://mindyourdecisions.com/blog/2016/08/07/can-you-solve-this-geometry-problem-for-6th-graders-in-china/
 
-# The key 'insight' is that we need to find the position of the position
-# where the line intersects the top right of the right circle.
-# Let's call this point A.
-# We can do this with algebraic numbers.
+using AlgebraicNumbers
+include("exact_geometry.jl")
+using .ExactGeometry
 
-# Define a Line as given by an equation ax + by + c == 0
-struct Line
-    a 
-    b 
-    c
-end 
+# The assigned problem has a 20-by-10 rectangle, its diagonal, and two tangent
+# circles.  Each circle has radius 5.  The diagonal splits the rectangle into
+# equal triangles, while a 180-degree rotation about the rectangle's centre
+# pairs the two circular pieces removed from the red region into one full disk.
+width, height, radius = 20, 10, 5
+triangle_area = width * height // 2
+disk_area_coefficient = radius^2
+@assert triangle_area == 100
+@assert disk_area_coefficient == 25
+println("Assigned problem: red area = 100 - 25π")
 
-struct Circle
-    cx::AlgebraicNumber
-    cy::AlgebraicNumber
-    rad::AlgebraicNumber
-end 
+# The social-media misprint adds the lower-left cutout.  This is the exact
+# construction that the old file had begun: find the top-right intersection A
+# of the diagonal and the right circle.  It is (18, 1), with no tolerance.
+top_left = AlgebraicNumber[0, height]
+bottom_right = AlgebraicNumber[width, 0]
+diagonal = line_from_points(top_left, bottom_right)
+right_circle = Circle(AlgebraicNumber[15, 5], AlgebraicNumber(radius))
+intersections = intersect_line_circle(diagonal, right_circle)
+@assert any(p -> p[1] == 18 && p[2] == 1, intersections)
+@assert any(p -> p[1] == 10 && p[2] == 5, intersections)
 
-# Constructs a line from a starting point and angle.
-function line_from_angle(point, ang)
-    a = sin_alg(ang)/cos_alg(ang)
-    b = AlgebraicNumber(-1)
-    c = point[2] - a*point[1]
-    return Line(a,b,c)
-end
-
-# Well known formula
-function intersect_line_circle(line, circle::Circle)
-    a = line.a^2 + line.b^2
-    b = 2*line.a*line.c + 2*line.a*line.b*circle.cy - 2*(line.b^2)*circle.cx 
-    c = line.c^2 + 2*line.b*line.c*circle.cy - (line.b^2)*(circle.r^2 - circle.cx^2 - circle.cy^2)
-
-    delta = b^2 - 4*a*c
-
-    x1 = (-b-sqrt(delta))/(2*a)
-    
-end
+# For the harder viral variation, the additional lower-left piece is
+# 10 - 25π/4 + 25atan(1/2); hence its red area is:
+println("Viral-variation red area = 90 - 75π/4 - 25atan(1/2)")

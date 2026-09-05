@@ -6,6 +6,8 @@
 # While still preserving all distances.
 
 using AlgebraicNumbers
+include("exact_geometry.jl")
+using .ExactGeometry
 
 # The radius of this disk is just the side of the cone 
 disk_rad = 60
@@ -26,33 +28,12 @@ point_B = AlgebraicNumber[dist_OB, 0]
 
 point_A = disk_rad*[cos_alg(disk_θ), sin_alg(disk_θ)]
 
-# Define a Line as given by an equation ax + by + c == 0
-struct Line
-    a 
-    b 
-    c
-end 
-
-function line_from_points(point1, point2)
-    slope = (point2[2] - point1[2])/(point2[1] - point1[1])
-    intercept = point2[2] - point2[1]*slope
-    return Line(slope, AlgebraicNumber(-1), intercept)
-end 
-
-# This function finds the intersection between two lines
-# It's just the classical formula which you can find in any textbook.
-function intersect(l1::Line, l2::Line)
-    denom = l1.a*l2.b - l2.a*l1.b
-    x = (l1.b*l2.c - l2.b*l1.c)/denom
-    y = (l1.c*l2.a - l2.c*l1.a)/denom
-    return [x, y]
-end
 
 # find angle of line AB in global ref frame 
 line_AB = line_from_points(point_A, point_B)
 line_OP = Line(-1/line_AB.a, AlgebraicNumber(-1), AlgebraicNumber(0))
 
-point_P = intersect(line_AB, line_OP)
+point_P = ExactGeometry.intersect(line_AB, line_OP)
 
 d = point_P .- point_B 
 dist_PB = sqrt(sum(d.^2))
